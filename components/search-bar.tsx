@@ -2,18 +2,20 @@ import { View, TextInput, Text, Pressable, StyleSheet, TouchableOpacity, Keyboar
 import { useEffect, useState } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
-export const SearchBar = ({ setter }: { setter: Function }) => {
+export const SearchBar = ({ setter, load }: { setter: Function, load: Function }) => {
     const apiKey = process.env.EXPO_PUBLIC_API_KEY;
     const api = `http://api.weatherapi.com/v1/search.json?key=${apiKey}&q=`
     const [place, setPlace] = useState('');
     const [results, setResults] = useState([]);
     const handlePress = () => {
         Keyboard.dismiss()
+        load(true);
         setter(place);
         setPlace('');
     }
     const handleOptionPress = (result: any) => {
         Keyboard.dismiss()
+        load(true);
         setter(result.name + ', ' + result.country);
         setPlace('');
     }
@@ -30,7 +32,11 @@ export const SearchBar = ({ setter }: { setter: Function }) => {
     return (
         <View style={styles.container}>
             <View style={styles.searchContainer}>
-                <TextInput placeholder='City...' value={place} style={styles.input} onChange={e => { setPlace(e.nativeEvent.text) }} />
+                <TextInput placeholder='City...' value={place} onKeyPress={(e) => {
+                    if (e.nativeEvent.key === 'Enter') {
+                        handlePress();
+                    }
+                }} style={styles.input} onChange={e => { setPlace(e.nativeEvent.text) }} />
                 <TouchableOpacity style={styles.button} onPress={handlePress}>
                     <FontAwesome name='search' size={16}></FontAwesome>
                 </TouchableOpacity>
@@ -41,8 +47,8 @@ export const SearchBar = ({ setter }: { setter: Function }) => {
                         results.length > 0 ?
                             <>
                                 {results.map((result: any, index: number) => (
-                                    <Pressable style={styles.option} onPress={() => handleOptionPress(result)}>
-                                        <Text key={index}>{result.name}, {result.country}</Text>
+                                    <Pressable key={index} style={styles.option} onPress={() => handleOptionPress(result)}>
+                                        <Text>{result.name}, {result.country}</Text>
                                     </Pressable>
                                 ))}
                             </>
@@ -56,7 +62,7 @@ export const SearchBar = ({ setter }: { setter: Function }) => {
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        top: 50,
+        top: 100,
         width: '90%',
         display: 'flex',
         flexDirection: 'column',

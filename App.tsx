@@ -3,6 +3,8 @@ import { StyleSheet, Text, View, ActivityIndicator, KeyboardAvoidingView } from 
 import { SearchBar } from './components/search-bar';
 import { useState, useEffect } from 'react';
 import { Image } from 'expo-image';
+import { weatherImages } from './constants';
+import { Forecast } from './components/forecast';
 
 type Weather = {
   location: {
@@ -43,6 +45,10 @@ type Weather = {
     uv: number,
     gust_mph: number,
     gust_kph: number
+  },
+  error?: {
+    code: number,
+    message: string
   }
 }
 
@@ -52,11 +58,12 @@ const url = `http://api.weatherapi.com/v1/current.json?key=${apiKey}&aqi=no&q=`
 export default function App() {
   const [city, setCity] = useState('Bogota');
   const [weather, setWeather] = useState<Weather>();
+  const [loading, setLoading] = useState(false);
   const fetchWeather = async() =>{
     const result = await fetch(url+city)
     const data = await result.json()
     setWeather(data)
-    console.log(JSON.stringify(data,null,2))
+    setLoading(false)
   }
   useEffect(() => {
     fetchWeather()
@@ -68,7 +75,7 @@ export default function App() {
     </View>
   )
 
-  const {current, location} = weather
+  const {current, location, error} = weather
 
   return (
     <KeyboardAvoidingView
@@ -77,10 +84,43 @@ export default function App() {
     enabled={false}
     >
       <View style={styles.container}>
-        <SearchBar setter={setCity}/>
-        <Image source={'https:'+current?.condition.icon} style={styles.weatherIcon}/>
-        <Text style={styles.weatherTemp}>{current?.temp_c} °C</Text>
-        <Text style={styles.weatherLocation}>{location?.name}, {location?.country}</Text>
+        <Image source={require('./assets/images/background.png')} blurRadius={100} style={styles.backStyles}/>
+        <SearchBar setter={setCity} load={setLoading}/>
+        
+        {
+          error !== undefined ? (
+            <View style={styles.mainContainer}>
+              <Image source={weatherImages['error']} style={styles.weatherIconError}/>
+              <Text style={styles.weatherErr}>Error:</Text>
+              {
+                error.code === 1006 ? (
+                  <Text style={styles.weatherErr}>City not found.</Text>
+                ):(
+                  <Text style={styles.weatherErr}>No search parameters.</Text>
+                )
+              }
+              <Text style={styles.weatherErr}>Try with other city.</Text>
+            </View>
+          ):(
+            <>
+            {
+              loading ? (
+                <ActivityIndicator size="large" color="#0000ff" />
+              ):(
+                <>
+                  <View style={styles.mainContainer}>
+                    <Image source={weatherImages[current?.condition?.text]} style={styles.weatherIcon}/>
+                    <Text style={styles.weatherTemp}>{current?.temp_c} °C</Text>
+                    <Text style={styles.weatherDesc}>{current?.condition?.text}</Text>
+                    <Text style={styles.weatherLocation}>{location?.name}, {location?.country}</Text>
+                  </View>
+                </>
+              )
+            }
+            </>
+          )
+        }
+        <Forecast city={city} load={loading}/>
         <StatusBar style="auto" />
       </View>
     </KeyboardAvoidingView>
@@ -93,28 +133,52 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(255,100,2,0.9)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  mainContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '80%',
+    paddingVertical: 40,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+    borderRadius: 20,
+  },
+  backStyles:{
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
   },
   weatherIcon: {
     width: 100,
     height: 100,
+  },
+  weatherIconError: {
+    width: 150,
+    height: 150,
   },
   weatherTemp: {
     fontSize: 50,
     fontWeight: '500',
     color: 'white',
   },
+  weatherErr:{
+    fontSize: 20,
+    fontWeight: '500',
+    color: 'white',
+    paddingVertical: 5,
+  },
   weatherDesc: {
-    fontSize: 25,
+    fontSize: 20,
     fontWeight: '500',
     color: 'white',
     textTransform: 'capitalize'
   },
   weatherLocation: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: '500',
     color: 'white',
+    paddingVertical: 10,
   },
 });
