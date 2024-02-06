@@ -1,10 +1,10 @@
 {
   "expo": {
     "name": "weather",
-    "slug": "weather",
+    "slug": "weatherapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/weather_icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -19,12 +19,18 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/weather_icon.png",
         "backgroundColor": "#ffffff"
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/weather_icon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8757493c-3b6e-4314-9093-92c9f3f46381"
+      }
+    },
+    "owner": "tapiero"
   }
 }
